@@ -2,8 +2,24 @@ const btnAddTask = document.querySelector('.app__button--add-task')
 const formAddTask = document.querySelector('.app__form-add-task')
 const textAreaTask = document.querySelector('.app__form-textarea')
 const ulTasks = document.querySelector('.app__section-task-list')
+const paragraphDescriptionTask = document.querySelector('.app__section-active-task-description')
+
+const formBtnCancel = document.querySelector('.app__form-footer__button--cancel')
+const formTask = document.querySelector('.app__form-add-task')
 
 const tasks = JSON.parse(localStorage.getItem('tasks')) || []
+let selectedTask = null
+let liSelectedTask = null
+
+const clearForm = () => {
+    textAreaTask.value = ''
+    formTask.classList.add('hidden')
+}
+
+function updateTasks() {
+    textAreaTask.value = ''
+    localStorage.setItem('tasks', JSON.stringify(tasks))
+}
 
 function createElementTask(task) {
     const li = document.createElement('li')
@@ -23,6 +39,15 @@ function createElementTask(task) {
     const button = document.createElement('button')
     button.classList.add('app_button-edit')
 
+    button.onclick = () => {
+        const newDescription = prompt("Qual é a nova tarefa?")
+        if (newDescription) {
+            paragraph.textContent = newDescription
+            task.descricao = newDescription
+            updateTasks()
+        }
+    }
+
     const imgButton = document.createElement('img')
     imgButton.setAttribute('src', './imagens/edit.png')
     button.append(imgButton)
@@ -31,8 +56,30 @@ function createElementTask(task) {
     li.append(paragraph)
     li.append(button)
 
+    li.onclick = () => {
+        document.querySelectorAll('.app__section-task-list-item-active')
+        .forEach(element => {
+            element.classList.remove('app__section-task-list-item-active')
+        })
+
+        if (selectedTask == task) {
+            paragraphDescriptionTask.textContent = ''
+            selectedTask = null
+            liSelectedTask = null
+            return
+        }
+        selectedTask = task
+        liSelectedTask = li
+        paragraphDescriptionTask.textContent = task.descricao
+
+        li.classList.add('app__section-task-list-item-active')
+    }
+
     return li
 }
+
+//btn cancelar preechimento de textarea
+formBtnCancel.addEventListener('click', clearForm)
 
 btnAddTask.addEventListener('click', () => {
     formAddTask.classList.toggle('hidden')
@@ -56,3 +103,11 @@ tasks.forEach(task => {
     const elementTask = createElementTask(task)
     ulTasks.appendChild(elementTask)
 });
+
+document.addEventListener('FocoFinalizado', () => {
+    if (selectedTask && liSelectedTask) {
+        liSelectedTask.classList.remove('app__section-task-list-item-active')
+        liSelectedTask.classList.add('app__section-task-list-item-complete')
+        liSelectedTask.querySelector('button').setAttribute('disabled', true)
+    }
+})
